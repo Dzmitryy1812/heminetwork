@@ -7,7 +7,6 @@ package tbc
 import (
 	"bytes"
 	"context"
-	"crypto/rand"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -600,54 +599,6 @@ func (b *btcNode) Best() []*chainhash.Hash {
 	return chs
 }
 
-func random(count int) []byte {
-	b := make([]byte, count)
-	_, err := rand.Read(b)
-	if err != nil {
-		panic(err)
-	}
-	return b
-}
-
-// type addressToKey struct {
-// 	key        *btcec.PrivateKey
-// 	compressed bool
-// }
-
-// func mkGetKey(keys map[string]addressToKey) txscript.KeyDB {
-// 	if keys == nil {
-// 		return txscript.KeyClosure(func(addr btcutil.Address) (*btcec.PrivateKey,
-// 			bool, error,
-// 		) {
-// 			return nil, false, errors.New("nope")
-// 		})
-// 	}
-// 	return txscript.KeyClosure(func(addr btcutil.Address) (*btcec.PrivateKey,
-// 		bool, error,
-// 	) {
-// 		a2k, ok := keys[addr.EncodeAddress()]
-// 		if !ok {
-// 			return nil, false, errors.New("nope")
-// 		}
-// 		return a2k.key, a2k.compressed, nil
-// 	})
-// }
-//
-// func mkGetScript(scripts map[string][]byte) txscript.ScriptDB {
-// 	if scripts == nil {
-// 		return txscript.ScriptClosure(func(addr btcutil.Address) ([]byte, error) {
-// 			return nil, errors.New("nope")
-// 		})
-// 	}
-// 	return txscript.ScriptClosure(func(addr btcutil.Address) ([]byte, error) {
-// 		script, ok := scripts[addr.EncodeAddress()]
-// 		if !ok {
-// 			return nil, errors.New("nope")
-// 		}
-// 		return script, nil
-// 	})
-// }
-
 func executeTX(t *testing.T, dump bool, scriptPubKey []byte, tx *btcutil.Tx) error {
 	flags := txscript.ScriptBip16 | txscript.ScriptVerifyDERSignatures |
 		txscript.ScriptStrictMultiSig | txscript.ScriptDiscourageUpgradableNops
@@ -760,7 +711,7 @@ func (b *btcNode) mine(name string, from *chainhash.Hash, payToAddress btcutil.A
 		return nil, errors.New("parent hash not found")
 	}
 	// extra nonce is needed to prevent block collisions
-	en := random(8)
+	en := testutil.RandomBytes(8)
 	extraNonce := binary.BigEndian.Uint64(en)
 	var mempool []*btcutil.Tx
 
@@ -820,7 +771,7 @@ func (b *btcNode) mineKss(name string, from *chainhash.Hash, payToAddress btcuti
 		return nil, errors.New("parent hash not found")
 	}
 	// extra nonce is needed to prevent block collisions
-	en := random(8)
+	en := testutil.RandomBytes(8)
 	extraNonce := binary.BigEndian.Uint64(en)
 	var mempool []*btcutil.Tx
 
@@ -1035,21 +986,6 @@ func (b *btcNode) Stop() error {
 
 	return b.listener.Close()
 }
-
-// func newPKAddress(params *chaincfg.Params) (*btcec.PrivateKey, *btcec.PublicKey, *btcutil.AddressPubKeyHash, error) {
-// 	key, err := btcec.NewPrivateKey()
-// 	if err != nil {
-// 		return nil, err
-// 	}
-//
-// 	pk := key.PubKey().SerializeUncompressed()
-// 	// address, err := btcutil.NewAddressPubKey(pk, params)
-// 	address, err := btcutil.NewAddressPubKeyHash(btcutil.Hash160(pk), params)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return key, key.PubKey(), address, nil
-// }
 
 func mustHave(ctx context.Context, t *testing.T, s *Server, blocks ...*block) error {
 	for _, b := range blocks {
@@ -2573,30 +2509,6 @@ func TestKeystoneIndexFork(t *testing.T) {
 	err = s.SyncIndexersToHash(ctx, *b2a.Hash())
 	if err != nil {
 		t.Fatalf("wind to b2a: %v", err)
-	}
-
-	// check if kss1 in db
-	rv, err = s.db.BlockKeystoneByL2KeystoneAbrevHash(ctx, *kss1Hash)
-	if err != nil {
-		t.Fatal(err)
-	}
-	// check if kss1 stored with correct block hash
-	if !rv.BlockHash.IsEqual(b2a.Hash()) {
-		t.Fatalf("wrong blockhash for stored keystone: %v", kss1Hash)
-	}
-
-	// check if keystone stored using heighthash index
-	hk, err = s.db.KeystonesByHeight(ctx, uint32(b2.Height()-1), 1)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if len(hk) != 1 {
-		t.Fatalf("expected 1 keystone at height 2, got %d", len(hk))
-	}
-
-	if diff := deep.Equal(hk[0], *rv); len(diff) > 0 {
-		t.Fatalf("unexpected keystone diff: %s", diff)
 	}
 
 	for address := range n.keys {

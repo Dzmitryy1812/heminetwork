@@ -1019,7 +1019,7 @@ func (s *Server) handleBlockExpired(ctx context.Context, key any, value any) err
 	if err != nil {
 		return fmt.Errorf("block header by hash: %w", err)
 	}
-	canonical, _ := s.isCanonical(ctx, bhX)
+	canonical, err := s.isCanonical(ctx, bhX)
 	if err != nil {
 		return fmt.Errorf("is canonical: %v %w", hash, err)
 	}

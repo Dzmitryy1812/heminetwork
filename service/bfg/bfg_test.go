@@ -18,7 +18,6 @@ import (
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/juju/loggo"
-	"github.com/phayes/freeport"
 
 	"github.com/hemilabs/heminetwork/v2/api/bfgapi"
 	"github.com/hemilabs/heminetwork/v2/api/tbcapi"
@@ -343,10 +342,33 @@ func messageListener(t *testing.T, expected map[string]int, errCh chan error, ms
 	}
 }
 
-func createAddress() string {
-	port, err := freeport.GetFreePort()
-	if err != nil {
-		panic(fmt.Errorf("find free port: %w", err))
+func waitForMockMessages(t *testing.T, msgCh <-chan string, waitingFor map[string]int) error {
+	start := time.Now()
+	for time.Since(start) < 10*time.Second {
+		time.Sleep(10 * time.Millisecond)
+		for range 1000 {
+			select {
+			case msg := <-msgCh:
+				waitingFor[msg]--
+			default:
+			}
+		}
+
+		finished := true
+		for k, v := range waitingFor {
+			if v != 0 {
+				t.Logf("missing %d messages of type %s", v, k)
+				finished = false
+			}
+		}
+		if finished {
+			return nil
+		}
 	}
-	return fmt.Sprintf("localhost:%d", port)
+	return fmt.Errorf("timeout waiting for mock messages: %v", waitingFor)
+}
+
+func createAddress() string {
+	port := testutil.FreePort()
+	return fmt.Sprintf("localhost:%s", port)
 }

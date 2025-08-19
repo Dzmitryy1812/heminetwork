@@ -14,6 +14,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"syscall"
 	"testing"
@@ -23,7 +24,6 @@ import (
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/go-test/deep"
-	"github.com/phayes/freeport"
 
 	"github.com/hemilabs/heminetwork/v2/api/bfgapi"
 	"github.com/hemilabs/heminetwork/v2/bitcoin/wallet/gozer/tbcgozer"
@@ -44,7 +44,8 @@ func nextPort(ctx context.Context, t *testing.T) int {
 		default:
 		}
 
-		port, err := freeport.GetFreePort()
+		portStr := testutil.FreePort()
+		port, err := strconv.Atoi(portStr)
 		if err != nil {
 			t.Fatal(err)
 		}
