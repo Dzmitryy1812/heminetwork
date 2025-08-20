@@ -2511,6 +2511,29 @@ func TestKeystoneIndexFork(t *testing.T) {
 	if txHH.Height != 0 {
 		t.Fatalf("expected tx index height to be 0, got: %v", txHH.Height)
 	}
+	// check if kss1 in db
+ 	rv, err = s.db.BlockKeystoneByL2KeystoneAbrevHash(ctx, *kss1Hash)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// check if kss1 stored with correct block hash
+	if !rv.BlockHash.IsEqual(b2a.Hash()) {
+		t.Fatalf("wrong blockhash for stored keystone: %v", kss1Hash)
+	}
+
+	// check if keystone stored using heighthash index
+	hk, err = s.db.KeystonesByHeight(ctx, uint32(b2.Height()-1), 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(hk) != 1 {
+		t.Fatalf("expected 1 keystone at height 2, got %d", len(hk))
+	}
+
+	if diff := deep.Equal(hk[0], *rv); len(diff) > 0 {
+		t.Fatalf("unexpected keystone diff: %s", diff)
+	}
 
 	// see if we can move to b2a
 	direction, err = s.TxIndexIsLinear(ctx, *b2a.Hash())
