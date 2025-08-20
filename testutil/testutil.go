@@ -8,17 +8,15 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"strconv"
-
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/phayes/freeport"
-
-	"github.com/hemilabs/heminetwork/v2/hemi"
-
 	"testing"
 
 	"github.com/btcsuite/btcd/btcutil"
+	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/txscript"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/phayes/freeport"
+
+	"github.com/hemilabs/heminetwork/v2/hemi"
 )
 
 // MakeSharedKeystones creates a matching map and slice of N keystones.
