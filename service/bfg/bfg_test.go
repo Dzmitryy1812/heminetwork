@@ -342,32 +342,6 @@ func messageListener(t *testing.T, expected map[string]int, errCh chan error, ms
 	}
 }
 
-func waitForMockMessages(t *testing.T, msgCh <-chan string, waitingFor map[string]int) error {
-	start := time.Now()
-	for time.Since(start) < 10*time.Second {
-		time.Sleep(10 * time.Millisecond)
-		for range 1000 {
-			select {
-			case msg := <-msgCh:
-				waitingFor[msg]--
-			default:
-			}
-		}
-
-		finished := true
-		for k, v := range waitingFor {
-			if v != 0 {
-				t.Logf("missing %d messages of type %s", v, k)
-				finished = false
-			}
-		}
-		if finished {
-			return nil
-		}
-	}
-	return fmt.Errorf("timeout waiting for mock messages: %v", waitingFor)
-}
-
 func createAddress() string {
 	port := testutil.FreePort()
 	return fmt.Sprintf("localhost:%s", port)
