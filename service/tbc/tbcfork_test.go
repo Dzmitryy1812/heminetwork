@@ -987,6 +987,21 @@ func (b *btcNode) Stop() error {
 	return b.listener.Close()
 }
 
+// func newPKAddress(params *chaincfg.Params) (*btcec.PrivateKey, *btcec.PublicKey, *btcutil.AddressPubKeyHash, error) {
+// 	key, err := btcec.NewPrivateKey()
+// 	if err != nil {
+// 		return nil, err
+// 	}
+//
+// 	pk := key.PubKey().SerializeUncompressed()
+// 	// address, err := btcutil.NewAddressPubKey(pk, params)
+// 	address, err := btcutil.NewAddressPubKeyHash(btcutil.Hash160(pk), params)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return key, key.PubKey(), address, nil
+// }
+
 func mustHave(ctx context.Context, t *testing.T, s *Server, blocks ...*block) error {
 	for _, b := range blocks {
 		_, height, err := s.BlockHeaderByHash(ctx, *b.Hash())
