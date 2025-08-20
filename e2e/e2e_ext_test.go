@@ -44,15 +44,10 @@ func nextPort(ctx context.Context, t *testing.T) int {
 		default:
 		}
 
-		portStr := testutil.FreePort()
-		port, err := strconv.Atoi(portStr)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if _, err := net.DialTimeout("tcp", net.JoinHostPort("localhost", fmt.Sprintf("%d", port)), 1*time.Second); err != nil {
+		if _, err := net.DialTimeout("tcp", net.JoinHostPort("localhost", testutil.FreePort()), 1*time.Second); err != nil {
 			if errors.Is(err, syscall.ECONNREFUSED) {
 				// connection error, port is open
+				port, _ := strconv.Atoi(testutil.FreePort())
 				return port
 			}
 
