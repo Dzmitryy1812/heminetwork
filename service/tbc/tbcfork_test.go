@@ -2512,7 +2512,7 @@ func TestKeystoneIndexFork(t *testing.T) {
 		t.Fatalf("expected tx index height to be 0, got: %v", txHH.Height)
 	}
 	// check if kss1 in db
- 	rv, err = s.db.BlockKeystoneByL2KeystoneAbrevHash(ctx, *kss1Hash)
+	rv, err = s.db.BlockKeystoneByL2KeystoneAbrevHash(ctx, *kss1Hash)
 	if err != nil {
 		t.Fatal(err)
 	}
